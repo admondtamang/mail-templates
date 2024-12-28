@@ -10,18 +10,7 @@ import { cn } from '@/lib/utils';
 import { EmailListInput } from './email-list';
 import {TextInput}  from './text-input';
 import { HTMLEditorField } from './html-editor-field';
-
-const templateSchema = z.object({
-  name: z.string().min(1, 'Template Name is required'),
-  subject: z.string().min(1, 'Subject is required'),
-  sendTo: z
-    .string()
-    .min(1, 'Send To is required')
-    .regex(/^([a-zA-Z0-9_\-.]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,},?\s*)*$/, 'Invalid email format'),
-  cc: z.string().optional(),
-  bcc: z.string().optional(),
-  content: z.string().min(1, 'Content is required'),
-});
+import { templateSchema, TemplateSchemaType } from './schema';
 
 type Field = {
   name: string;
@@ -34,6 +23,11 @@ type Step = {
   title: string;
   fields: Field[];
 };
+
+interface TemplateFormProps {
+  onSubmit: (data: any) => void;
+  initialData?:any| Partial<TemplateSchemaType>;
+}
 
 const steps: Step[] = [
   {
@@ -51,11 +45,6 @@ const steps: Step[] = [
     fields: [{ name: 'content', label: 'Content', type: 'editor', required: true }],
   },
 ];
-
-interface TemplateFormProps {
-  onSubmit: (data: any) => void;
-  initialData?: any;
-}
 
 export function TemplateForm({ onSubmit, initialData = {} }: TemplateFormProps) {
   const [currentStep, setCurrentStep] = useState(0);

@@ -12,21 +12,31 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Eye, Pencil, Trash2, Search } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
+import axios, { AxiosResponse } from 'axios'
+import { TemplateSchemaType } from './schema';
+
+type TemplateSchemaDatabaseType = TemplateSchemaType &  { id:string; createdAt: string}
+
+type TemplateResponse={
+  data: TemplateSchemaDatabaseType[],
+  total: number,
+  pages: number,
+}
 
 export function TemplateList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const limit = 10;
 
-  const { data, isLoading } = useQuery({
+  const { data: templates, isLoading } = useQuery({
     queryKey: ['templates', page, search],
     queryFn: async () => {
-      const response = await fetch(
+      const { data }: AxiosResponse<TemplateResponse> = await axios(
         `/api/templates?page=${page}&limit=${limit}&search=${search}`
       );
-      return response.json();
+
+      return data
     },
   });
 
@@ -58,13 +68,15 @@ export function TemplateList() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data?.templates.map((template) => (
-              <TableRow key={template.id}>
+            {templates?.data?.map((template) => (
+              <TableRow key={template?.id}>
                 <TableCell>{template.name}</TableCell>
                 <TableCell>{template.subject}</TableCell>
-                <TableCell>{template.sendTo.length}</TableCell>
+                <TableCell>{Array.isArray(template?.sendTo) && template.sendTo?.map((name)=> (
+                  <span>{name}</span>
+                ))}</TableCell>
                 <TableCell>
-                  {new Date(template.createdAt).toLocaleDateString()}
+                  {new Date(template?.createdAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
@@ -88,7 +100,7 @@ export function TemplateList() {
       <div className="flex justify-between items-center">
         <div>
           Showing {(page - 1) * limit + 1} to{' '}
-          {Math.min(page * limit, data?.total || 0)} of {data?.total} results
+          {Math.min(page * limit, templates?.total || 0)} of {templates?.total} results
         </div>
         <div className="flex space-x-2">
           <Button
@@ -101,7 +113,7 @@ export function TemplateList() {
           <Button
             variant="outline"
             onClick={() => setPage((p) => p + 1)}
-            disabled={page >= (data?.pages || 1)}
+            disabled={page >= (templates?.pages || 1)}
           >
             Next
           </Button>
