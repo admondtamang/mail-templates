@@ -1,0 +1,21 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model EmailTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  subject     String
+  content     String
+  sendTo      String[]
+  cc          String[]
+  bcc         String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
