@@ -2,13 +2,26 @@
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { HTMLEditor } from '@/components/email-template/html-editor';
 import { cn } from '@/lib/utils';
+import { EmailListInput } from './email-list';
+import {TextInput}  from './text-input';
+import { HTMLEditorField } from './html-editor-field';
+
+const templateSchema = z.object({
+  name: z.string().min(1, 'Template Name is required'),
+  subject: z.string().min(1, 'Subject is required'),
+  sendTo: z
+    .string()
+    .min(1, 'Send To is required')
+    .regex(/^([a-zA-Z0-9_\-.]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,},?\s*)*$/, 'Invalid email format'),
+  cc: z.string().optional(),
+  bcc: z.string().optional(),
+  content: z.string().min(1, 'Content is required'),
+});
 
 type Field = {
   name: string;
@@ -21,7 +34,6 @@ type Step = {
   title: string;
   fields: Field[];
 };
-
 
 const steps: Step[] = [
   {
@@ -39,6 +51,7 @@ const steps: Step[] = [
     fields: [{ name: 'content', label: 'Content', type: 'editor', required: true }],
   },
 ];
+
 interface TemplateFormProps {
   onSubmit: (data: any) => void;
   initialData?: any;
@@ -46,8 +59,15 @@ interface TemplateFormProps {
 
 export function TemplateForm({ onSubmit, initialData = {} }: TemplateFormProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm({
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm({
     defaultValues: initialData,
+    resolver: zodResolver(templateSchema),
   });
 
   const content = watch('content');
@@ -55,61 +75,43 @@ export function TemplateForm({ onSubmit, initialData = {} }: TemplateFormProps) 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
 
-  const renderField = (field:Field) => {
-    if (field.type === 'email-list') {
-      return (
-        <div className="space-y-2" key={field.name}>
-          <Label>{field.label}</Label>
-          <Input
-            type="text"
-            placeholder="Enter email addresses separated by commas"
-            {...register(field.name, {
-              required: field.required,
-              pattern: {
-                value: /^([a-zA-Z0-9_\-.]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,},?\s*)*$/,
-                message: 'Invalid email format',
-              },
-            })}
+  const renderField = (field: Field) => {
+    switch (field.type) {
+      case 'text':
+        return (
+          <TextInput
+            key={field.name}
+            name={field.name}
+            label={field.label}
+            required={field.required}
+            register={register}
+            errors={errors}
           />
-          {errors[field.name] && (
-              <p className="text-red-500 text-sm">{errors[field.name]?.message as string}</p>
-          )}
-        </div>
-      );
+        );
+      case 'email-list':
+        return (
+          <EmailListInput
+            key={field.name}
+            name={field.name}
+            label={field.label}
+            required={field.required}
+            register={register}
+            errors={errors}
+          />
+        );
+      case 'editor':
+        return (
+          <HTMLEditorField
+            key={field.name}
+            name={field.name}
+            label={field.label}
+            value={content || ''}
+            setValue={setValue}
+          />
+        );
+      default:
+        return null;
     }
-
-    if (field.type === 'editor') {
-      return (
-        <div className="grid grid-cols-2 gap-4 h-[calc(100vh-300px)]" key={field.name}>
-          <div className="space-y-2 min-h-[40dvh] ">
-            <Label>{field.label}</Label>
-            <HTMLEditor
-              value={content || ''}
-              onChange={(value) => setValue('content', value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Preview</Label>
-            <Card className="h-full overflow-auto p-4">
-              <div dangerouslySetInnerHTML={{ __html: content || '' }} />
-            </Card>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-2" key={field.name}>
-        <Label>{field.label}</Label>
-        <Input
-          type={field.type}
-          {...register(field.name, { required: field.required })}
-        />
-        {errors[field.name] && (
-          <p className="text-red-500 text-sm">This field is required</p>
-        )}
-      </div>
-    );
   };
 
   return (
@@ -121,28 +123,18 @@ export function TemplateForm({ onSubmit, initialData = {} }: TemplateFormProps) 
         </div>
       </div>
 
-      <div className={cn(
-        "space-y-4",
-        currentStep === 1 && "h-[calc(100vh-300px)]"
-      )}>
+      <div className={cn('space-y-4', currentStep === 1 && 'h-[calc(100vh-300px)]')}>
         {steps[currentStep].fields.map(renderField)}
       </div>
 
       <div className="flex justify-between mt-6">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={prevStep}
-          disabled={currentStep === 0}
-        >
+        <Button type="button" variant="outline" onClick={prevStep} disabled={currentStep === 0}>
           <ChevronLeft className="mr-2 h-4 w-4" />
           Previous
         </Button>
-        
+
         {currentStep === steps.length - 1 ? (
-          <Button type="submit">
-            Save Template
-          </Button>
+          <Button type="submit">Save Template</Button>
         ) : (
           <Button type="button" onClick={nextStep}>
             Next

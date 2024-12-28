@@ -6,7 +6,7 @@ import {TemplateForm} from '@/components/email-template/template-form';
 export default function NewTemplatePage() {
   const router = useRouter();
 
-  const handleSubmit = async (data) => {
+  const handleSubmit = async (data: any) => {
     const response = await fetch('/api/templates', {
       method: 'POST',
       headers: {
