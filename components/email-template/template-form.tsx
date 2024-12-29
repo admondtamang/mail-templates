@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { EmailListInput } from './email-list';
+import { EmailListInput } from './email-list-input';
 import {TextInput}  from './text-input';
 import { HTMLEditorField } from './html-editor-field';
 import { templateSchema, TemplateSchemaType } from './schema';
@@ -123,7 +123,7 @@ export function TemplateForm({ onSubmit, initialData = {} }: TemplateFormProps) 
         </Button>
 
         {currentStep === steps.length - 1 ? (
-          <Button type="submit">Save Template</Button>
+          <Button type="submit">{Object.keys(initialData).length > 0 ? 'Update Template': 'Save Template'}</Button>
         ) : (
           <Button type="button" onClick={nextStep}>
             Next

@@ -1,4 +1,4 @@
-import TemplateList from '@/components/email-template/template-list';
+import {TemplateList} from '@/components/email-template/template-list';
 
 export default function TemplatesPage() {
   return (

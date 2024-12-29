@@ -15,6 +15,7 @@ import { Eye, Pencil, Trash2, Search } from 'lucide-react';
 import { useState } from 'react';
 import axios, { AxiosResponse } from 'axios'
 import { TemplateSchemaType } from './schema';
+import { useRouter } from 'next/navigation';
 
 type TemplateSchemaDatabaseType = TemplateSchemaType &  { id:string; createdAt: string}
 
@@ -27,6 +28,7 @@ type TemplateResponse={
 export function TemplateList() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
+  const router=useRouter();
   const limit = 10;
 
   const { data: templates, isLoading } = useQuery({
@@ -73,17 +75,17 @@ export function TemplateList() {
                 <TableCell>{template.name}</TableCell>
                 <TableCell>{template.subject}</TableCell>
                 <TableCell>{Array.isArray(template?.sendTo) && template.sendTo?.map((name)=> (
-                  <span>{name}</span>
+                  <span key={name}>{name}</span>
                 ))}</TableCell>
                 <TableCell>
                   {new Date(template?.createdAt).toLocaleDateString()}
                 </TableCell>
                 <TableCell>
                   <div className="flex space-x-2">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={() => router.push(`/templates/${template.id}`)}>
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" onClick={() => router.push(`/templates/${template.id}`)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="icon">
