@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import {
   Table,
   TableBody,
@@ -8,43 +8,42 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Eye, Pencil, Trash2, Search } from 'lucide-react';
-import { useState } from 'react';
-import axios, { AxiosResponse } from 'axios'
-import { TemplateSchemaType } from './schema';
-import { useRouter } from 'next/navigation';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Eye, Pencil, Trash2, Search } from "lucide-react";
+import { useState } from "react";
+import axios, { AxiosResponse } from "axios";
+import { TemplateSchemaType } from "./schema";
+import { useRouter } from "next/navigation";
 
-type TemplateSchemaDatabaseType = TemplateSchemaType &  { id:string; createdAt: string}
+type TemplateSchemaDatabaseType = TemplateSchemaType & {
+  id: string;
+  createdAt: string;
+};
 
-type TemplateResponse={
-  data: TemplateSchemaDatabaseType[],
-  total: number,
-  pages: number,
-}
+type TemplateResponse = {
+  data: TemplateSchemaDatabaseType[];
+  total: number;
+  pages: number;
+};
 
 export function TemplateList() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState('');
-  const router=useRouter();
+  const [search, setSearch] = useState("");
+  const router = useRouter();
   const limit = 10;
 
   const { data: templates, isLoading } = useQuery({
-    queryKey: ['templates', page, search],
+    queryKey: ["templates", page, search],
     queryFn: async () => {
       const { data }: AxiosResponse<TemplateResponse> = await axios(
         `/api/templates?page=${page}&limit=${limit}&search=${search}`
       );
 
-      return data
+      return data;
     },
   });
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <div className="space-y-4">
@@ -59,50 +58,66 @@ export function TemplateList() {
       </div>
 
       <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Subject</TableHead>
-              <TableHead>Recipients</TableHead>
-              <TableHead>Created At</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {templates?.data?.map((template) => (
-              <TableRow key={template?.id}>
-                <TableCell>{template.name}</TableCell>
-                <TableCell>{template.subject}</TableCell>
-                <TableCell>{Array.isArray(template?.sendTo) && template.sendTo?.map((name)=> (
-                  <span key={name}>{name}</span>
-                ))}</TableCell>
-                <TableCell>
-                  {new Date(template?.createdAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    <Button variant="ghost" size="icon" onClick={() => router.push(`/templates/${template.id}`)}>
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => router.push(`/templates/${template.id}`)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        {isLoading ? (
+          <div>Loading...</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead>Recipients</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {templates?.data?.map((template) => (
+                <TableRow key={template?.id}>
+                  <TableCell>{template.name}</TableCell>
+                  <TableCell>{template.subject}</TableCell>
+                  <TableCell>
+                    {Array.isArray(template?.sendTo) &&
+                      template.sendTo?.map((name) => (
+                        <span key={name}>{name}</span>
+                      ))}
+                  </TableCell>
+                  <TableCell>
+                    {new Date(template?.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      {/* <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => router.push(`/templates/${template.id}`)}
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button> */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => router.push(`/templates/${template.id}`)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       <div className="flex justify-between items-center">
         <div>
-          Showing {(page - 1) * limit + 1} to{' '}
-          {Math.min(page * limit, templates?.total || 0)} of {templates?.total} results
+          Showing {(page - 1) * limit + 1} to{" "}
+          {Math.min(page * limit, templates?.total || 0)} of {templates?.total}{" "}
+          results
         </div>
         <div className="flex space-x-2">
           <Button
