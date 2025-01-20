@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, TrophyIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EmailListInput } from "./email-list-input";
 import { TextInput } from "./text-input";
@@ -15,7 +15,7 @@ import { templateSchema, TemplateSchemaType } from "./schema";
 type Field = {
   name: string;
   label: string;
-  type: "text" | "email-list" | "editor";
+  type: "text" | "email-list" | "editor" | "divider";
   required: boolean;
 };
 
@@ -29,30 +29,13 @@ interface TemplateFormProps {
   initialData?: any | Partial<TemplateSchemaType>;
 }
 
-const steps: Step[] = [
-  {
-    title: "Template Details",
-    fields: [
-      { name: "name", label: "Template Name", type: "text", required: true },
-      { name: "subject", label: "Subject", type: "text", required: true },
-      { name: "sendTo", label: "Send To", type: "email-list", required: true },
-      { name: "cc", label: "CC", type: "email-list", required: false },
-      { name: "bcc", label: "BCC", type: "email-list", required: false },
-    ],
-  },
-  {
-    title: "Email Content",
-    fields: [
-      { name: "content", label: "Content", type: "editor", required: true },
-    ],
-  },
-];
-
 export function TemplateForm({
   onSubmit,
   initialData = {},
 }: TemplateFormProps) {
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [sendTemplate, setSendTemplate] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -66,9 +49,46 @@ export function TemplateForm({
 
   const content = watch("content");
 
+  const recipients = {
+    title: "Recipients",
+    fields: [
+      {
+        name: "sendTo",
+        label: "Send To",
+        type: "email-list",
+        required: false,
+      },
+      // { name: "cc", label: "CC", type: "email-list", required: false },
+      // { name: "bcc", label: "BCC", type: "email-list", required: false },
+    ],
+  };
+
+  const conditionalSteps: Step[] = sendTemplate ? [recipients] : ([] as Step[]);
+
+  const steps: Step[] = [
+    {
+      title: "Template Details",
+      fields: [
+        { name: "name", label: "Template Name", type: "text", required: true },
+        { name: "subject", label: "Subject", type: "text", required: true },
+      ],
+    },
+    {
+      title: "Email Content",
+      fields: [
+        { name: "content", label: "Content", type: "editor", required: true },
+      ],
+    },
+    ...conditionalSteps,
+  ];
+
   const nextStep = () =>
     setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
+  const prevStep = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 0));
+
+    setSendTemplate(false);
+  };
 
   const renderField = (field: Field) => {
     switch (field.type) {
@@ -104,6 +124,8 @@ export function TemplateForm({
             setValue={setValue}
           />
         );
+      case "divider":
+        return <div className="h-px bg-gray-200 my-12" key={field.name}></div>;
       default:
         return null;
     }
@@ -138,9 +160,25 @@ export function TemplateForm({
           Previous
         </Button>
 
+        {currentStep === 1 && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              setSendTemplate(true);
+              setCurrentStep(2);
+            }}
+          >
+            <TrophyIcon className="mr-2 h-4 w-4" />
+            Try Template
+          </Button>
+        )}
+
         {currentStep === steps.length - 1 ? (
           <Button type="submit">
-            {Object.keys(initialData).length > 0
+            {currentStep === 2
+              ? "Send Email"
+              : Object.keys(initialData).length > 0
               ? "Update Template"
               : "Save Template"}
           </Button>

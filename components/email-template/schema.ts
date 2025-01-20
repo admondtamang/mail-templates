@@ -6,7 +6,7 @@ const templateSchema = z.object({
     sendTo: z
       .string()
       .min(1, 'Send To is required')
-      .regex(/^([a-zA-Z0-9_\-.]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,},?\s*)*$/, 'Invalid email format'),
+      .regex(/^([a-zA-Z0-9_\-.]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,},?\s*)*$/, 'Invalid email format').optional(),
     cc: z.string().optional(),
     bcc: z.string().optional(),
     content: z.string().min(1, 'Content is required'),

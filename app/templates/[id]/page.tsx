@@ -4,10 +4,12 @@ import { useParams, useRouter } from "next/navigation";
 import { TemplateForm } from "@/components/email-template/template-form";
 import axios, { AxiosResponse } from "axios";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NewTemplatePage() {
   const router = useRouter();
   const params = useParams();
+  const toast = useToast();
   const id = params.id as string;
 
   const { data: template, isLoading } = useQuery({
@@ -18,10 +20,6 @@ export default function NewTemplatePage() {
       return data;
     },
   });
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   const handleSubmit = async (data: any) => {
     const response = await fetch("/api/templates/" + id, {
@@ -37,6 +35,18 @@ export default function NewTemplatePage() {
       }),
     });
 
+    if (data.sendTo) {
+      const response = await fetch(
+        `/api/templates/${id}/send?to=${data.sendTo}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
     if (response.ok) {
       router.push("/templates");
     }
@@ -49,19 +59,23 @@ export default function NewTemplatePage() {
   return (
     <div className="container mx-auto py-8">
       <h1 className="text-4xl font-bold mb-8">Create New Template</h1>
-      <div className="mx-auto pr-4">
-        <TemplateForm
-          onSubmit={handleSubmit}
-          initialData={{
-            name: template?.name,
-            content: template?.content,
-            subject: template?.subject,
-            sendTo: convertArrayToString(template?.sendTo),
-            cc: convertArrayToString(template?.cc),
-            bcc: convertArrayToString(template?.bcc),
-          }}
-        />
-      </div>
+      {isLoading ? (
+        <div>Loading...</div>
+      ) : (
+        <div className="mx-auto pr-4">
+          <TemplateForm
+            onSubmit={handleSubmit}
+            initialData={{
+              name: template?.name,
+              content: template?.content,
+              subject: template?.subject,
+              sendTo: convertArrayToString(template?.sendTo),
+              cc: convertArrayToString(template?.cc),
+              bcc: convertArrayToString(template?.bcc),
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
