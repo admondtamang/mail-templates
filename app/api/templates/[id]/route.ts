@@ -33,10 +33,12 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const id = (await params).id;
+
   await prisma.emailTemplate.delete({
-    where: { id: params.id },
+    where: { id},
   });
   return NextResponse.json({ success: true });
 }

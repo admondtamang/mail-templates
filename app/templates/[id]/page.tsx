@@ -29,9 +29,13 @@ export default function NewTemplatePage() {
       },
       body: JSON.stringify({
         ...data,
-        sendTo: data.sendTo.split(",").map((email) => email.trim()),
-        cc: data.cc ? data.cc.split(",").map((email) => email.trim()) : [],
-        bcc: data.bcc ? data.bcc.split(",").map((email) => email.trim()) : [],
+        sendTo: data.sendTo.split(",").map((email: string) => email.trim()),
+        cc: data.cc
+          ? data.cc.split(",").map((email: string) => email.trim())
+          : [],
+        bcc: data.bcc
+          ? data.bcc.split(",").map((email: string) => email.trim())
+          : [],
       }),
     });
 

@@ -63,7 +63,7 @@ export function TemplateForm({
     ],
   };
 
-  const conditionalSteps: Step[] = sendTemplate ? [recipients] : ([] as Step[]);
+  const conditionalSteps: any = sendTemplate ? [recipients] : ([] as Step[]);
 
   const steps: Step[] = [
     {
